@@ -1,0 +1,3 @@
+[submodule "PHPriotAPI"]
+	path = PHPriotAPI
+	url = http://github.com/Gnomorian/PHPriotAPI
