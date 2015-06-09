@@ -1,0 +1,41 @@
+<html>
+<head>
+<title>Zaun Academy</title>
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css" href="styles/index_style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="text/javascript" src="scripts/indexScripts.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="formContainer">
+      <form action="/search" formmethod="get" onsubmit="return validateForm()" name="querySummoner">
+        <input type="hidden" name="region" value="br"></input>
+        <div class="gamemodeSelection">
+          <label>Normal</label><input type="radio" name="gamemode" value="normal" checked></input>
+          <label>Ranked</label><input type="radio" name="gamemode" value="ranked"></input>
+        </div>
+        <div class="summonerNameInput">
+          <label>Summoner Name:</label>
+          <input type="text" name="summoner">
+        </div>
+        <div class="confirmAndRegion">
+          <select id="selectRegion">
+            <option value="br">BR</option>
+            <option value="eune">EUNE</option>
+            <option value="euw">EUW</option>
+            <option value="kr">KR</option>
+            <option value="lan">LAN</option>
+            <option value="las">LAS</option>
+            <option value="na">NA</option>
+            <option value="oce">OCE</option>
+            <option value="ru">RU</option>
+            <option value="tr">TR</option>
+          </select>
+          <input type="submit" value="Search"></input>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

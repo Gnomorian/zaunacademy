@@ -1,0 +1,56 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background: url("../images/Zaun.jpg");
+}
+
+.gamemodeSelection {
+  width: 5em;
+  float: left;
+}
+
+.summonerNameInput {
+  padding-top: 0.5em;
+  float: left;
+}
+
+label {
+  margin-right: 0.4em;
+}
+
+.confirmAndRegion {
+  float: left;
+  width: 5em;
+  margin-left: 1em;
+}
+
+.confirmAndRegion select {
+  width: 5em;
+}
+
+.confirmAndRegion input {
+  margin-top: 0.2em;
+  width: 5em;
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+}
+
+.formContainer {
+  margin: auto;
+  margin-top: 20%;
+  display: block;
+  width: 30em;
+  height: 5em;
+  background-color: white;
+  border-radius: 1em;
+  padding-top: 2em;
+  padding-left: 0.6em;
+}
