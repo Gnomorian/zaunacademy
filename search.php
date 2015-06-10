@@ -24,18 +24,40 @@
           <input type="text" name="summoner">
         </div>
         <div class="confirmAndRegion">
-          <select id="selectRegion">
-            <option value="br">BR</option>
-            <option value="eune">EUNE</option>
-            <option value="euw">EUW</option>
-            <option value="kr">KR</option>
-            <option value="lan">LAN</option>
-            <option value="las">LAS</option>
-            <option value="na">NA</option>
-            <option value="oce">OCE</option>
-            <option value="ru">RU</option>
-            <option value="tr">TR</option>
+          <?php
+          /*
+            makes the selected region the same as the previously
+            selected region for ease of use.
+          */
+          $regions = array();
+          $regions['br'] = "";
+          $regions['eune'] = "";
+          $regions['euw'] = "";
+          $regions['kr'] = "";
+          $regions['lan'] = "";
+          $regions['las'] = "";
+          $regions['na'] = "";
+          $regions['oce'] = "";
+          $regions['ru'] = "";
+          $regions['tr'] = "";
+          $regions[$_GET['region']] = 'selected';
+          echo(
+          "
+          <select id=\"selectRegion\">
+            <option {$regions['br']} value=\"br\">BR</option>
+            <option {$regions['eune']} value=\"eune\">EUNE</option>
+            <option {$regions['euw']} value=\"euw\">EUW</option>
+            <option {$regions['kr']} value=\"kr\">KR</option>
+            <option {$regions['lan']} value=\"lan\">LAN</option>
+            <option {$regions['las']} value=\"las\">LAS</option>
+            <option {$regions['na']} value=\"na\">NA</option>
+            <option {$regions['oce']} value=\"oce\">OCE</option>
+            <option {$regions['ru']} value=\"ru\">RU</option>
+            <option {$regions['tr']} value=\"tr\">TR</option>
           </select>
+          "
+        );
+          ?>
           <input type="submit" value="Search"></input>
         </div>
       </form>
@@ -79,16 +101,33 @@
             $wins += $matchHistory['games'][$i]['stats']['win'];
           if(isset($matchHistory['games'][$i]['stats']['minionsKilled']))
             $creepScore += $matchHistory['games'][$i]['stats']['minionsKilled'];
-        }
 
-        $assists /= $noOfGames;
-        $kills /= $noOfGames;
-        $turrets /= $noOfGames;
-        $deaths /= $noOfGames;
-        $wardsPlaced /= $noOfGames;
-        $wardsDestroyed /= $noOfGames;
-        $creepScore /= $noOfGames;
-        $wins = ($wins / $noOfGames) * 100;
+            if(isset($matchHistory['games'][$i]['stats']['item6']))
+            {
+              $item = $matchHistory['games'][$i]['stats']['item6'];
+              if($item == 3361 || $item == 3362 || $item == 3341 || $item == 3363)
+              {
+                $upgradedTrinkets += 1;
+              }
+            }
+        }
+        if($assists != 0)
+          $assists /= $noOfGames;
+          $kills /= $noOfGames;
+        if($turrets != 0)
+          $turrets /= $noOfGames;
+        if($deaths != 0)
+          $deaths /= $noOfGames;
+        if($wardsPlaced != 0)
+          $wardsPlaced /= $noOfGames;
+        if($wardsDestroyed != 0)
+          $wardsDestroyed /= $noOfGames;
+        if($creepScore != 0)
+          $creepScore /= $noOfGames;
+        if($wins != 0)
+          $wins = ($wins / $noOfGames) * 100;
+        if($upgradedTrinkets != 0)
+          $upgradedTrinkets = ($upgradedTrinkets / $noOfGames) * 100;
 
 
         echo("
@@ -101,6 +140,7 @@
           <li><p>Wards Placed: $wardsPlaced</p></li>
           <li><p>wards Destroyed: $wardsDestroyed</p></li>
           <li><p>Win Rate: $wins%</p></li>
+          <li><p>You upgraded your trinkets: $upgradedTrinkets% of the time!</p></li>
         </li>"
       );
       ?>
