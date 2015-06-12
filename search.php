@@ -86,6 +86,7 @@ else
   $wardsDestroyed = 0;
   $creepScore = 0;
   $wins = 0;
+  $role = array();
   if($_GET['gamemode'] == "normal")
   {
     $matchHistory = \game\getRecentGameBySummonerId($_GET['region'], $summonerId, $apiKey);
@@ -124,10 +125,12 @@ else
   {
     $matchHistory = \matchHistory\getMatchHistoryBySummonerId($_GET['region'], $summonerId, $apiKey);
     $noOfGames = count($matchHistory['matches']);
+    $matchIds = array();
     for($i = 0; $i < $noOfGames; $i++)
     {
       $participants = count($matchHistory['matches'][$i]['participants']);
       $participantId;
+      $matchIds[$i] = $matchHistory['matches'][$i]['matchId'];
       for($j = 0; $j < count($participants); $j++)
       {
 
@@ -153,6 +156,25 @@ else
         $wins += $participant['stats']['winner'];
       if(isset($participant['stats']['minionsKilled']))
         $creepScore += $participant['stats']['minionsKilled'];
+      $timeline = $matchHistory['matches'][$i]['participants'][0]['timeline'];
+      if(isset($timeline['role']) || isset($timeline['lane']))
+      {
+        if($timeline['lane'] == "BOT" || $timeline['lane'] == "BOTTOM")
+        {
+          if($timeline['role'] == "DUO_CARRY")
+          {
+            array_push($role, "ADC");
+          }
+          else
+          {
+            array_push($role, "SUP");
+          }
+        }
+        else
+        {
+          array_push($role, $timeline['lane']);
+        }
+      }
       // trinket slot
       if(isset($participant['stats']['item6']))
       {
@@ -185,8 +207,11 @@ else
     $upgradedTrinkets = ($upgradedTrinkets / $noOfGames) * 100;
 
   // page layout to be inserted into the document
+  $role = implode(array_unique($role), ", ");
   $content = "
+  <h3>Your Averages</h3>
   <ul>
+    <li><p>Your Position: $role</p></li>
     <li><p>Kills: $kills</p></li>
     <li><p>Assists: $assists</p></li>
     <li><p>Deaths: $deaths</p></li>
@@ -196,7 +221,7 @@ else
     <li><p>wards Destroyed: $wardsDestroyed</p></li>
     <li><p>Win Rate: $wins%</p></li>
     <li><p>You upgraded your trinkets: $upgradedTrinkets% of the time!</p></li>
-  </li>
+  </ul>
   ";
 
   writeSearchPage($summoner['name'], $regions, $gamemodes, $content);
