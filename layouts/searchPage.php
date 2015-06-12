@@ -1,5 +1,5 @@
 <?php
-function writeSearchPage($summonerName, $regions, $content)
+function writeSearchPage($summonerName, $regions, $gamemodes, $content)
 {
 $page = "
 <html>
@@ -21,8 +21,8 @@ $page = "
       <form action=\"search.php\" formmethod=\"get\" onsubmit=\"return validateForm()\" name=\"querySummoner\">
         <input type=\"hidden\" name=\"region\" value=\"br\"></input>
         <div class=\"gamemodeSelection\">
-          <label>Normal</label><input type=\"radio\" name=\"gamemode\" value=\"normal\" checked></input>
-          <label>Ranked</label><input type=\"radio\" name=\"gamemode\" value=\"ranked\"></input>
+          <label>Normal</label><input type=\"radio\" name=\"gamemode\" value=\"normal\" {$gamemodes['normal']}></input>
+          <label>Ranked</label><input type=\"radio\" name=\"gamemode\" value=\"ranked\" {$gamemodes['ranked']}></input>
         </div>
         <div class=\"summonerNameInput\">
           <label>Summoner Name:</label>

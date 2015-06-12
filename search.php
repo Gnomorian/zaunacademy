@@ -21,6 +21,11 @@ $regions['ru'] = "";
 $regions['tr'] = "";
 $regions[$_GET['region']] = 'selected';
 
+$gamemodes = array();
+$gamemodes['normal'] = "";
+$gamemodes['ranked'] = "";
+$gamemodes[$_GET['gamemode']] = "checked";
+
 // get the summoner id and locolized name
 $summoners = \summoner\getSummonersByName($_GET['region'], $_GET['summoner'], $apiKey);
 // if query to riotapi fails do alternative page
@@ -37,6 +42,10 @@ if(!is_array($summoners))
   else if(strpos($summoners, "404"))
   {
     $errorMessage = "Error 404: No Summoner by that name, are you sure you selected the right server?";
+  }
+  else if(strpos($summoners, "422"))
+  {
+    $errorMessage = "Error 422: Found summoner information, but they havent played since 2013 so no data is saved.";
   }
   else if(strpos($summoners, "429"))
   {
@@ -62,9 +71,7 @@ else
   $summoner = $summoners[$_GET['summoner']];
   $summonerId = $summoner['id'];
   // get the summoners recent 10 games
-  $matchHistory = \game\getRecentGameBySummonerId($_GET['region'], $summonerId, $apiKey);
-
-  $noOfGames = count($matchHistory['games']);
+  $noOfGames = 0;
 
   $upgradedTrinkets = 0;
   $assists = 0;
@@ -75,34 +82,83 @@ else
   $wardsDestroyed = 0;
   $creepScore = 0;
   $wins = 0;
-
-  for($i = 0; $i < $noOfGames; $i++)
+  if($_GET['gamemode'] == "normal")
   {
-    if(isset($matchHistory['games'][$i]['stats']['assists']))
-      $assists += $matchHistory['games'][$i]['stats']['assists'];
-    if(isset($matchHistory['games'][$i]['stats']['numDeaths']))
-      $deaths += $matchHistory['games'][$i]['stats']['numDeaths'];
-    if(isset($matchHistory['games'][$i]['stats']['championsKilled']))
-      $kills += $matchHistory['games'][$i]['stats']['championsKilled'];
-    if(isset($matchHistory['games'][$i]['stats']['turretsKilled']))
-      $turrets += $matchHistory['games'][$i]['stats']['turretsKilled'];
-    if(isset($matchHistory['games'][$i]['stats']['wardPlaced']))
-      $wardsPlaced += $matchHistory['games'][$i]['stats']['wardPlaced'];
-    if(isset($matchHistory['games'][$i]['stats']['wardKilled']))
-      $wardsDestroyed += $matchHistory['games'][$i]['stats']['wardKilled'];
-    if(isset($matchHistory['games'][$i]['stats']['win']))
-      $wins += $matchHistory['games'][$i]['stats']['win'];
-    if(isset($matchHistory['games'][$i]['stats']['minionsKilled']))
-      $creepScore += $matchHistory['games'][$i]['stats']['minionsKilled'];
-      // trinket slot
-      if(isset($matchHistory['games'][$i]['stats']['item6']))
+    $matchHistory = \game\getRecentGameBySummonerId($_GET['region'], $summonerId, $apiKey);
+    $noOfGames = count($matchHistory['games']);
+
+    for($i = 0; $i < $noOfGames; $i++)
+    {
+      if(isset($matchHistory['games'][$i]['stats']['assists']))
+        $assists += $matchHistory['games'][$i]['stats']['assists'];
+      if(isset($matchHistory['games'][$i]['stats']['numDeaths']))
+        $deaths += $matchHistory['games'][$i]['stats']['numDeaths'];
+      if(isset($matchHistory['games'][$i]['stats']['championsKilled']))
+        $kills += $matchHistory['games'][$i]['stats']['championsKilled'];
+      if(isset($matchHistory['games'][$i]['stats']['turretsKilled']))
+        $turrets += $matchHistory['games'][$i]['stats']['turretsKilled'];
+      if(isset($matchHistory['games'][$i]['stats']['wardPlaced']))
+        $wardsPlaced += $matchHistory['games'][$i]['stats']['wardPlaced'];
+      if(isset($matchHistory['games'][$i]['stats']['wardKilled']))
+        $wardsDestroyed += $matchHistory['games'][$i]['stats']['wardKilled'];
+      if(isset($matchHistory['games'][$i]['stats']['win']))
+        $wins += $matchHistory['games'][$i]['stats']['win'];
+      if(isset($matchHistory['games'][$i]['stats']['minionsKilled']))
+        $creepScore += $matchHistory['games'][$i]['stats']['minionsKilled'];
+        // trinket slot
+        if(isset($matchHistory['games'][$i]['stats']['item6']))
+        {
+          $item = $matchHistory['games'][$i]['stats']['item6'];
+          if($item == 3361 || $item == 3362 || $item == 3341 || $item == 3363)
+          {
+            $upgradedTrinkets += 1;
+          }
+        }
+    }
+  }
+  else
+  {
+    $matchHistory = \matchHistory\getMatchHistoryBySummonerId($_GET['region'], $summonerId, $apiKey);
+    $noOfGames = count($matchHistory['matches']);
+    for($i = 0; $i < $noOfGames; $i++)
+    {
+      $participants = count($matchHistory['matches'][$i]['participants']);
+      $participantId;
+      for($j = 0; $j < count($participants); $j++)
       {
-        $item = $matchHistory['games'][$i]['stats']['item6'];
+
+        if($matchHistory['matches'][$i]['participantIdentities'][$j]['player']['summonerId'] == $summonerId)
+        {
+          $participantId = $matchHistory['matches'][$i]['participantIdentities'][$j]['participantId'];
+        }
+      }
+      $participant = $matchHistory['matches'][$i]['participants'][$participantId];
+      if(isset($participant['stats']['assists']))
+        $assists += $participant['stats']['assists'];
+      if(isset($participant['stats']['deaths']))
+        $deaths += $participant['stats']['deaths'];
+      if(isset($participant['stats']['kills']))
+        $kills += $participant['stats']['kills'];
+      if(isset($participant['stats']['towerKills']))
+        $turrets += $participant['stats']['towerKills'];
+      if(isset($participant['stats']['wardsPlaced']))
+        $wardsPlaced += $participant['stats']['wardsPlaced'];
+      if(isset($participant['stats']['wardsKilled']))
+        $wardsDestroyed += $participant['stats']['wardsKilled'];
+      if(isset($participant['stats']['winner']))
+        $wins += $participant['stats']['winner'];
+      if(isset($participant['stats']['minionsKilled']))
+        $creepScore += $participant['stats']['minionsKilled'];
+      // trinket slot
+      if(isset($participant['stats']['item6']))
+      {
+        $item = $participant['stats']['item6'];
         if($item == 3361 || $item == 3362 || $item == 3341 || $item == 3363)
         {
           $upgradedTrinkets += 1;
         }
       }
+    }
   }
   // stop devision by 0 errors
   if($assists != 0)
@@ -139,8 +195,6 @@ else
   </li>
   ";
 
-  writeSearchPage($summoner['name'], $regions, $content);
+  writeSearchPage($summoner['name'], $regions, $gamemodes, $content);
 }
-
-
 ?>
