@@ -21,6 +21,10 @@ $regions['ru'] = "";
 $regions['tr'] = "";
 $regions[$_GET['region']] = 'selected';
 
+/*
+  makes the selected gamemode the same as the previously
+  selected gamemode for ease of use.
+*/
 $gamemodes = array();
 $gamemodes['normal'] = "";
 $gamemodes['ranked'] = "";
@@ -64,7 +68,7 @@ if(!is_array($summoners))
   $content = "
     <p>$errorMessage</p>
   ";
-  writeSearchPage($_GET['summoner'], $regions, $content);
+  writeSearchPage($_GET['summoner'], $regions, $gamemodes, $content);
 }
 else
 {
