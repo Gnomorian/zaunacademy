@@ -1,6 +1,7 @@
 <?php
 require(dirname(__DIR__)."/zaunacademy/PHPriotAPI/riotAPI.php");
 require(dirname(__DIR__)."/zaunacademy/layouts/searchPage.php");
+require(dirname(__DIR__)."/zaunacademy/zaunlib.php");
 
 $apiKey = "201a3c6c-87f0-4a3a-a65f-910fa3570316";
 
@@ -9,16 +10,16 @@ $apiKey = "201a3c6c-87f0-4a3a-a65f-910fa3570316";
   selected region for ease of use.
 */
 $regions = array();
-$regions['br'] = "";
-$regions['eune'] = "";
-$regions['euw'] = "";
-$regions['kr'] = "";
-$regions['lan'] = "";
-$regions['las'] = "";
-$regions['na'] = "";
-$regions['oce'] = "";
-$regions['ru'] = "";
-$regions['tr'] = "";
+$regions['br']    = "";
+$regions['eune']  = "";
+$regions['euw']   = "";
+$regions['kr']    = "";
+$regions['lan']   = "";
+$regions['las']   = "";
+$regions['na']    = "";
+$regions['oce']   = "";
+$regions['ru']    = "";
+$regions['tr']    = "";
 $regions[$_GET['region']] = 'selected';
 
 /*
@@ -63,6 +64,10 @@ if(!is_array($summoners))
   {
     $errorMessage = "Error 503: Riot has currently disabled a feature that breaks the site, try again later.";
   }
+  else if(strpos($summoners, "1Million"))
+  {
+    $errorMessage = "Error 1Million dollars!: No Internet Connection";
+  }
 
   $errorMessage =
   $content = "
@@ -72,158 +77,19 @@ if(!is_array($summoners))
 }
 else
 {
+  $player = new SummonerStats();
   $summoner = $summoners[$_GET['summoner']];
-  $summonerId = $summoner['id'];
-  // get the summoners recent 10 games
-  $noOfGames = 0;
+  $player->name = $summoner['name'];
+  $player->id = $summoner['id'];
 
-  $upgradedTrinkets = 0;
-  $assists = 0;
-  $kills = 0;
-  $turrets = 0;
-  $deaths = 0;
-  $wardsPlaced = 0;
-  $wardsDestroyed = 0;
-  $creepScore = 0;
-  $wins = 0;
-  $role = array();
+  $oponent = new SummonerStats();
   if($_GET['gamemode'] == "normal")
   {
-    $matchHistory = \game\getRecentGameBySummonerId($_GET['region'], $summonerId, $apiKey);
-    $noOfGames = count($matchHistory['games']);
-
-    for($i = 0; $i < $noOfGames; $i++)
-    {
-      if(isset($matchHistory['games'][$i]['stats']['assists']))
-        $assists += $matchHistory['games'][$i]['stats']['assists'];
-      if(isset($matchHistory['games'][$i]['stats']['numDeaths']))
-        $deaths += $matchHistory['games'][$i]['stats']['numDeaths'];
-      if(isset($matchHistory['games'][$i]['stats']['championsKilled']))
-        $kills += $matchHistory['games'][$i]['stats']['championsKilled'];
-      if(isset($matchHistory['games'][$i]['stats']['turretsKilled']))
-        $turrets += $matchHistory['games'][$i]['stats']['turretsKilled'];
-      if(isset($matchHistory['games'][$i]['stats']['wardPlaced']))
-        $wardsPlaced += $matchHistory['games'][$i]['stats']['wardPlaced'];
-      if(isset($matchHistory['games'][$i]['stats']['wardKilled']))
-        $wardsDestroyed += $matchHistory['games'][$i]['stats']['wardKilled'];
-      if(isset($matchHistory['games'][$i]['stats']['win']))
-        $wins += $matchHistory['games'][$i]['stats']['win'];
-      if(isset($matchHistory['games'][$i]['stats']['minionsKilled']))
-        $creepScore += $matchHistory['games'][$i]['stats']['minionsKilled'];
-        // trinket slot
-        if(isset($matchHistory['games'][$i]['stats']['item6']))
-        {
-          $item = $matchHistory['games'][$i]['stats']['item6'];
-          if($item == 3361 || $item == 3362 || $item == 3341 || $item == 3363)
-          {
-            $upgradedTrinkets += 1;
-          }
-        }
-    }
+    require(dirname(__DIR__)."/zaunacademy/searchNormal.php");
   }
   else
   {
-    $matchHistory = \matchHistory\getMatchHistoryBySummonerId($_GET['region'], $summonerId, $apiKey);
-    $noOfGames = count($matchHistory['matches']);
-    $matchIds = array();
-    for($i = 0; $i < $noOfGames; $i++)
-    {
-      $participants = count($matchHistory['matches'][$i]['participants']);
-      $participantId;
-      $matchIds[$i] = $matchHistory['matches'][$i]['matchId'];
-      for($j = 0; $j < count($participants); $j++)
-      {
-
-        if($matchHistory['matches'][$i]['participantIdentities'][$j]['player']['summonerId'] == $summonerId)
-        {
-          $participantId = $matchHistory['matches'][$i]['participantIdentities'][$j]['participantId'];
-        }
-      }
-      $participant = $matchHistory['matches'][$i]['participants'][$participantId];
-      if(isset($participant['stats']['assists']))
-        $assists += $participant['stats']['assists'];
-      if(isset($participant['stats']['deaths']))
-        $deaths += $participant['stats']['deaths'];
-      if(isset($participant['stats']['kills']))
-        $kills += $participant['stats']['kills'];
-      if(isset($participant['stats']['towerKills']))
-        $turrets += $participant['stats']['towerKills'];
-      if(isset($participant['stats']['wardsPlaced']))
-        $wardsPlaced += $participant['stats']['wardsPlaced'];
-      if(isset($participant['stats']['wardsKilled']))
-        $wardsDestroyed += $participant['stats']['wardsKilled'];
-      if(isset($participant['stats']['winner']))
-        $wins += $participant['stats']['winner'];
-      if(isset($participant['stats']['minionsKilled']))
-        $creepScore += $participant['stats']['minionsKilled'];
-      $timeline = $matchHistory['matches'][$i]['participants'][0]['timeline'];
-      if(isset($timeline['role']) || isset($timeline['lane']))
-      {
-        if($timeline['lane'] == "BOT" || $timeline['lane'] == "BOTTOM")
-        {
-          if($timeline['role'] == "DUO_CARRY")
-          {
-            array_push($role, "ADC");
-          }
-          else
-          {
-            array_push($role, "SUP");
-          }
-        }
-        else
-        {
-          array_push($role, $timeline['lane']);
-        }
-      }
-      // trinket slot
-      if(isset($participant['stats']['item6']))
-      {
-        $item = $participant['stats']['item6'];
-        if($item == 3361 || $item == 3362 || $item == 3341 || $item == 3363)
-        {
-          $upgradedTrinkets += 1;
-        }
-      }
-    }
+    require(dirname(__DIR__)."/zaunacademy/searchRanked.php");
   }
-  // stop devision by 0 errors
-  if($assists != 0)
-    $assists /= $noOfGames;
-    if($kills != 0)
-    $kills /= $noOfGames;
-  if($turrets != 0)
-    $turrets /= $noOfGames;
-  if($deaths != 0)
-    $deaths /= $noOfGames;
-  if($wardsPlaced != 0)
-    $wardsPlaced /= $noOfGames;
-  if($wardsDestroyed != 0)
-    $wardsDestroyed /= $noOfGames;
-  if($creepScore != 0)
-    $creepScore /= $noOfGames;
-  if($wins != 0)
-    $wins = ($wins / $noOfGames) * 100;
-  if($upgradedTrinkets != 0)
-    $upgradedTrinkets = ($upgradedTrinkets / $noOfGames) * 100;
-
-  // page layout to be inserted into the document
-  $role = implode(array_unique($role), ", ");
-  $content = "
-  <h3>Your Averages</h3>
-  <ul>
-    <li><p>Your Position: $role</p></li>
-    <li><p>Kills: $kills</p></li>
-    <li><p>Assists: $assists</p></li>
-    <li><p>Deaths: $deaths</p></li>
-    <li><p>Turrets Destroyed: $turrets</p></li>
-    <li><p>CS: $creepScore</p></li>
-    <li><p>Wards Placed: $wardsPlaced</p></li>
-    <li><p>wards Destroyed: $wardsDestroyed</p></li>
-    <li><p>Win Rate: $wins%</p></li>
-    <li><p>You upgraded your trinkets: $upgradedTrinkets% of the time!</p></li>
-  </ul>
-  ";
-
-  writeSearchPage($summoner['name'], $regions, $gamemodes, $content);
 }
 ?>
